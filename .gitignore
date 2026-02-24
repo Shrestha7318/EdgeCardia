@@ -1,0 +1,26 @@
+# Node
+dashboard/node_modules/
+dashboard/package-lock.json
+
+# Keil MDK build output
+Objects/
+Listings/
+DebugConfig/
+RTE/
+
+# Keil user-specific GUI layout (changes every session)
+*.uvguix.*
+
+# Keil project options (contains local debug paths)
+*.uvoptx
+
+# CMSIS event recorder stub
+*.scvd
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# IDE
+.vscode/
+.gemini/
