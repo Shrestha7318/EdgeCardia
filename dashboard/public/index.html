@@ -246,7 +246,6 @@
 
     <div class="grid">
 
-        <!-- ECG Live Chart -->
         <div class="card">
             <div class="card-header">
                 <div class="card-title">Live ECG Lead I</div>
@@ -276,7 +275,6 @@
             </div>
         </div>
 
-        <!-- Stress / SDNN -->
         <div class="card">
             <div class="card-header">
                 <div class="card-title">Autonomic Stress</div>
@@ -306,14 +304,12 @@
             </div>
         </div>
 
-        <!-- Risks & Conditions -->
         <div class="card" style="grid-column: span 2;">
             <div class="card-header">
                 <div class="card-title">Condition Risk Profiling</div>
             </div>
 
             <div class="risk-grid">
-                <!-- COPD -->
                 <div class="risk-item">
                     <div class="risk-label">COPD / RESPIRATORY RISK</div>
                     <div class="risk-value" id="copdValue">--</div>
@@ -322,7 +318,6 @@
                     </div>
                 </div>
 
-                <!-- Heart Age -->
                 <div class="risk-item">
                     <div class="risk-label">ESTIMATED HEART AGE</div>
                     <div class="risk-value" id="ageValue">--</div>
@@ -343,7 +338,6 @@
     <script>
         const socket = io();
 
-        // --- 1. SMOOTH CHART CONFIGURATION ---
         const ctx = document.getElementById('ecgChart').getContext('2d');
         const TOTAL_POINTS = 300; // 5 seconds of data @ 60fps
         const ecgData = Array(TOTAL_POINTS).fill(0);
@@ -364,7 +358,7 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: false, // Disable Chart.js animation for instant raw drawing
+                animation: false,
                 scales: {
                     x: { display: false },
                     y: {
@@ -379,7 +373,6 @@
             }
         });
 
-        // --- 2. REAL ECG DATA PLOTTING ---
         // The chart now plots actual ECG samples from the hardware
         let hasRealData = false;
         let lastSampleTime = 0;
@@ -394,12 +387,10 @@
             ecgData.push(val);
         });
 
-        // Chart update loop - redraws at 30fps for smooth display
         function updateChart() {
-            // If no real data received in 3 seconds, show flatline
             if (!hasRealData || (Date.now() - lastSampleTime > 3000)) {
                 ecgData.shift();
-                ecgData.push((Math.random() - 0.5) * 0.03); // tiny flatline noise
+                ecgData.push((Math.random() - 0.5) * 0.03);
             }
 
             chart.update('none');
@@ -409,7 +400,6 @@
         requestAnimationFrame(updateChart);
 
 
-        // --- 3. DATA HANDLER ---
         socket.on('metrics', (data) => {
             // BPM
             document.getElementById('bpmValue').innerText = data.bpm;
