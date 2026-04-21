@@ -9,7 +9,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 const PORT = 3000;
-const SERIAL_PORT_PATH = 'COM5';  // Make sure this matches your board
+const SERIAL_PORT_PATH = 'COM3';  // Make sure this matches your board
 const BAUD_RATE = 9600;
 
 // Serve static files
