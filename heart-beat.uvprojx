@@ -469,6 +469,21 @@
               <FileType>5</FileType>
               <FilePath>.\ssd1306_conf.h</FilePath>
             </File>
+            <File>
+              <FileName>esp01s.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\esp01s.c</FilePath>
+            </File>
+            <File>
+              <FileName>esp01s.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\esp01s.h</FilePath>
+            </File>
+            <File>
+              <FileName>net_config.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\net_config.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

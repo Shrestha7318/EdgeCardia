@@ -112,38 +112,79 @@ void Display_UI_ShowWave(
 
     ssd1306_Fill(Black);
 
-    snprintf(line, sizeof(line), "ECG BPM:%d", bpm);
-    draw_text(0, 0, line, Font_6x8);
+    snprintf(line, sizeof(line), "BPM:%d", bpm);
+    draw_text(0, 0, line, Font_11x18);
 
-    snprintf(line, sizeof(line), "Lead:%s", leads_ok ? "ON" : "OFF");
-    draw_text(80, 0, line, Font_6x8);
+    snprintf(line, sizeof(line), "%s", leads_ok ? "Lead ON" : "Lead OFF");
+    draw_text(78, 4, line, Font_6x8);
 
-    const uint8_t y_min = 12;
+    const uint8_t y_min = 22;
     const uint8_t y_max = 63;
-    const uint8_t plot_h = y_max - y_min;
+    const uint8_t center_y = 43;
 
-    for (uint8_t x = 0; x < 128; x += 2) {
-        ssd1306_DrawPixel(x, y_min + plot_h / 2, White);
+    for (uint8_t x = 0; x < 128; x += 4) {
+        ssd1306_DrawPixel(x, center_y, White);
     }
 
-    uint16_t plot_count = (count > 128) ? 128 : count;
+    uint16_t display_points = 128;
 
-    for (uint16_t x = 0; x < (plot_count - 1); x++) {
-        uint16_t i1 = (head + x) % count;
-        uint16_t i2 = (head + x + 1) % count;
+    if (count < display_points) {
+        display_points = count;
+    }
 
-        float s1 = samples[i1];
-        float s2 = samples[i2];
+    float smooth[128];
 
-        if (s1 > 1.2f) s1 = 1.2f;
-        if (s1 < -1.2f) s1 = -1.2f;
-        if (s2 > 1.2f) s2 = 1.2f;
-        if (s2 < -1.2f) s2 = -1.2f;
+    for (uint16_t x = 0; x < display_points; x++) {
+        uint16_t raw_index = (head + x) % count;
 
-        uint8_t y1 = (uint8_t)(y_min + ((1.2f - s1) * plot_h / 2.4f));
-        uint8_t y2 = (uint8_t)(y_min + ((1.2f - s2) * plot_h / 2.4f));
+        float s = samples[raw_index];
 
+        if (s > 1.0f) s = 1.0f;
+        if (s < -1.0f) s = -1.0f;
+
+        if (x == 0) {
+            smooth[x] = s;
+        } else {
+            smooth[x] = 0.82f * smooth[x - 1] + 0.18f * s;
+        }
+    }
+
+    float min_val = smooth[0];
+    float max_val = smooth[0];
+
+    for (uint16_t i = 1; i < display_points; i++) {
+        if (smooth[i] < min_val) min_val = smooth[i];
+        if (smooth[i] > max_val) max_val = smooth[i];
+    }
+
+    float range = max_val - min_val;
+
+    if (range < 0.25f) {
+        range = 0.25f;
+    }
+
+    float mid = (max_val + min_val) * 0.5f;
+    float scale = 30.0f / range;
+
+    if (scale > 30.0f) {
+        scale = 30.0f;
+    }
+
+    if (scale < 8.0f) {
+        scale = 8.0f;
+    }
+
+    for (uint16_t x = 0; x < display_points - 1; x++) {
+        float s1 = smooth[x];
+        float s2 = smooth[x + 1];
+
+        int y1 = center_y - (int)((s1 - mid) * scale);
+        int y2 = center_y - (int)((s2 - mid) * scale);
+
+        if (y1 < y_min) y1 = y_min;
         if (y1 > y_max) y1 = y_max;
+
+        if (y2 < y_min) y2 = y_min;
         if (y2 > y_max) y2 = y_max;
 
         ssd1306_Line(x, y1, x + 1, y2, White);
@@ -155,10 +196,8 @@ void Display_UI_ShowWave(
 void Display_Button_Init(void) {
     RCC->AHB1ENR |= RCC_AHB1ENR_GPIOCEN;
 
-    // Input mode
     BTN_PORT->MODER &= ~(3U << (BTN_PIN * 2));
 
-    // Pull-up enabled
     BTN_PORT->PUPDR &= ~(3U << (BTN_PIN * 2));
     BTN_PORT->PUPDR |=  (1U << (BTN_PIN * 2));
 }
@@ -168,15 +207,15 @@ uint8_t Display_Button_Pressed(void) {
 
     uint8_t current = (BTN_PORT->IDR & (1U << BTN_PIN)) ? 1 : 0;
 
-    // Active low press detect on falling edge
     if (last_state == 1 && current == 0) {
         delay_ms(DEBOUNCE_MS);
 
         current = (BTN_PORT->IDR & (1U << BTN_PIN)) ? 1 : 0;
+
         if (current == 0) {
-            // Wait for release so one press = one toggle
             while (((BTN_PORT->IDR & (1U << BTN_PIN)) ? 1 : 0) == 0) {
             }
+
             delay_ms(DEBOUNCE_MS);
             last_state = 1;
             return 1;
