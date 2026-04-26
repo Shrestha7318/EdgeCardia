@@ -2,8 +2,8 @@ const { SerialPort } = require('serialport');
 
 // Try 9600 first, then try 115200
 const port = new SerialPort({
-    path: 'COM3',
-    baudRate: 115200
+    path: 'COM5',
+    baudRate: 9600
 });
 
 console.log('--- RAW BYTE MONITOR (COM5 @ 9600) ---');
